@@ -1,0 +1,8 @@
+# Normalize text files
+* text=auto
+
+# Force LF for shell scripts (Linux/Docker)
+*.sh text eol=lf
+
+# Force CRLF for Windows batch files
+*.bat text eol=crlf
