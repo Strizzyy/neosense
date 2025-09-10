@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Neosense</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}" />
-  </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SourceSense - Neo4j Metadata Extractor</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+</head>
 <body>
-  <div class="card">
-    <h2>Neosense Metadata Extractor</h2>
-    <p>Click the button to fetch metadata from the configured Neo4j database.</p>
-    
-    <form id="sourceForm" onsubmit="handleSubmit(event)">
-      <button id="runWorkflowButton" type="submit">Fetch Metadata</button>
-    </form>
-  </div>
+    <div class="card">
+        <h2>SourceSense Metadata Extractor</h2>
+        <p>Click the button to fetch comprehensive metadata from your Neo4j database.</p>
+        
+        <form id="sourceForm" onsubmit="handleSubmit(event)">
+            <button id="runWorkflowButton" type="submit">Fetch Metadata</button>
+        </form>
+    </div>
 
-  <div id="results-container" class="card hidden">
-    <h2>Extraction Results</h2>
-    <div id="results-content"></div>
-  </div>
+    <div id="results-container" class="card hidden">
+        <h2>Metadata Extraction Results</h2>
+        <div id="results-content"></div>
+    </div>
 
-  <script src="{{ url_for('static', path='script.js') }}"></script>
+    <script src="{{ url_for('static', path='script.js') }}"></script>
 </body>
 </html>
