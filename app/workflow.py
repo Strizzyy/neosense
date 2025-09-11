@@ -30,9 +30,14 @@ class Neo4jWorkflow(WorkflowInterface):
     @workflow.run
     async def run(self, workflow_config: Dict[str, Any]) -> dict:
         timeout = timedelta(minutes=5)
+        
+        # Extract Neo4j credentials from workflow config
+        neo4j_credentials = workflow_config.get("neo4j_credentials", {})
+        logger.info(f"Workflow started with credentials for: {neo4j_credentials.get('neo4j_uri', 'environment variables')}")
+        
         workflow_args = await workflow.execute_activity_method(
             self.activities_cls.get_workflow_args, 
-            workflow_config, 
+            {**workflow_config, "neo4j_credentials": neo4j_credentials}, 
             start_to_close_timeout=timedelta(minutes=1),
         )
         
@@ -281,6 +286,7 @@ class Neo4jWorkflow(WorkflowInterface):
         logger.info("=" * 100)
         logger.info("🎯 NEOSENSE - INTELLIGENT NEO4J METADATA EXTRACTION")
         logger.info("   Advanced Graph Database Metadata Discovery & Analysis")
+        logger.info("   🔗 Live extraction from user-provided Neo4j credentials")
         logger.info("=" * 100)
         
         # Schema Information - Enhanced Display

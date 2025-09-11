@@ -54,11 +54,25 @@ async def main():
                 break
     
     if fastapi_app:
+        logger.info(f"Found FastAPI app: {type(fastapi_app)}")
+        logger.info(f"FastAPI app methods: {[method for method in dir(fastapi_app) if 'route' in method.lower()]}")
         setup_frontend_routes(fastapi_app)
     else:
         logger.warning("Could not find FastAPI app instance - routes will not be available")
         # Print all available attributes for debugging
         logger.info(f"Available attributes: {[attr for attr in dir(app) if not attr.startswith('_')]}")
+        
+        # Try a more direct approach
+        try:
+            # Check if we can access the server directly
+            if hasattr(app, 'server') and app.server:
+                logger.info(f"Found server: {type(app.server)}")
+                if hasattr(app.server, 'app'):
+                    fastapi_app = app.server.app
+                    logger.info(f"Found FastAPI app via server.app: {type(fastapi_app)}")
+                    setup_frontend_routes(fastapi_app)
+        except Exception as e:
+            logger.error(f"Error in direct server access: {e}")
     
     await app.start_server()
 
@@ -74,9 +88,68 @@ def setup_frontend_routes(fastapi_app):
     import json
     import os
     
-    # API Routes
-    @fastapi_app.get("/api/workflow-result/{workflow_id}")
-    async def get_workflow_result(workflow_id: str):
+    # Test connection function
+    async def test_connection_handler(request: Request):
+        """Test Neo4j connection with provided credentials"""
+        try:
+            from app.client import Neo4jClient
+            
+            # Get JSON body from request
+            body = await request.json()
+            
+            # Extract credentials
+            uri = body.get("neo4j_uri")
+            username = body.get("neo4j_username")
+            password = body.get("neo4j_password")
+            
+            logger.info(f"Testing connection to {uri} with username {username}")
+            
+            if not all([uri, username, password]):
+                return {"success": False, "error": "Missing required credentials"}
+            
+            # Test connection
+            client = Neo4jClient(uri=uri, username=username, password=password)
+            await client.load()
+            
+            # Run a simple test query
+            result = await client.run_query("RETURN 1 as test")
+            
+            await client.close()
+            
+            logger.info("Connection test successful")
+            return {"success": True, "message": "Connection successful"}
+            
+        except Exception as e:
+            logger.error(f"Connection test failed: {e}")
+            return {"success": False, "error": str(e)}
+    
+    # Register the route using add_api_route
+    try:
+        fastapi_app.add_api_route(
+            "/api/test-connection",
+            test_connection_handler,
+            methods=["POST"],
+            response_model=None
+        )
+        logger.info("Successfully registered /api/test-connection endpoint")
+    except Exception as e:
+        logger.error(f"Failed to register test-connection endpoint: {e}")
+        # Fallback: try direct route registration
+        try:
+            from fastapi import APIRouter
+            router = APIRouter()
+            
+            @router.post("/api/test-connection")
+            async def test_connection_route(request: Request):
+                return await test_connection_handler(request)
+            
+            fastapi_app.include_router(router)
+            logger.info("Successfully registered /api/test-connection via router")
+        except Exception as e2:
+            logger.error(f"Fallback route registration also failed: {e2}")
+
+    # Workflow result handlers
+    async def get_workflow_result_handler(workflow_id: str):
         """Get workflow result from file storage or memory"""
         logger.info(f"Checking for workflow result: {workflow_id}")
         
@@ -112,15 +185,31 @@ def setup_frontend_routes(fastapi_app):
         logger.info("Workflow result not ready yet")
         raise HTTPException(status_code=404, detail="Workflow not ready")
     
-    @fastapi_app.post("/api/store-result/{workflow_id}")
-    async def store_workflow_result(workflow_id: str, result: dict):
+    async def store_workflow_result_handler(workflow_id: str, request: Request):
         """Store workflow result (this will be called by our workflow)"""
         logger.info(f"Storing result for workflow: {workflow_id}")
+        result = await request.json()
         workflow_results[workflow_id] = result
         return {"status": "stored"}
     
-    @fastapi_app.get("/test/metadata")
-    async def test_metadata():
+    # Register workflow result endpoints
+    try:
+        fastapi_app.add_api_route(
+            "/api/workflow-result/{workflow_id}",
+            get_workflow_result_handler,
+            methods=["GET"]
+        )
+        fastapi_app.add_api_route(
+            "/api/store-result/{workflow_id}",
+            store_workflow_result_handler,
+            methods=["POST"]
+        )
+        logger.info("Successfully registered workflow result endpoints")
+    except Exception as e:
+        logger.error(f"Failed to register workflow result endpoints: {e}")
+    
+    # Test metadata handler
+    async def test_metadata_handler():
         """Real metadata extracted from Neo4j workflow"""
         return {
             "Business Context": {
@@ -290,6 +379,17 @@ def setup_frontend_routes(fastapi_app):
             }
         }
     
+    # Register test metadata endpoint
+    try:
+        fastapi_app.add_api_route(
+            "/test/metadata",
+            test_metadata_handler,
+            methods=["GET"]
+        )
+        logger.info("Successfully registered test metadata endpoint")
+    except Exception as e:
+        logger.error(f"Failed to register test metadata endpoint: {e}")
+    
     # Frontend routes
     frontend_dir = Path("frontend")
     if not frontend_dir.exists():
@@ -306,13 +406,28 @@ def setup_frontend_routes(fastapi_app):
     if templates_dir.exists():
         templates = Jinja2Templates(directory=str(templates_dir))
         
-        @fastapi_app.get("/", response_class=HTMLResponse)
-        async def home(request: Request):
+        async def home_handler(request: Request):
             return templates.TemplateResponse("index.html", {"request": request})
         
-        @fastapi_app.get("/favicon.ico")
-        async def favicon():
+        async def favicon_handler():
             return {"message": "No favicon"}
+        
+        # Register frontend routes
+        try:
+            fastapi_app.add_api_route(
+                "/",
+                home_handler,
+                methods=["GET"],
+                response_class=HTMLResponse
+            )
+            fastapi_app.add_api_route(
+                "/favicon.ico",
+                favicon_handler,
+                methods=["GET"]
+            )
+            logger.info("Successfully registered frontend routes")
+        except Exception as e:
+            logger.error(f"Failed to register frontend routes: {e}")
     
     # Make the storage accessible to the workflow
     fastapi_app.workflow_results = workflow_results

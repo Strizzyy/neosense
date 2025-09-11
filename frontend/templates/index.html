@@ -12,20 +12,27 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
             min-height: 100vh;
             color: #1a202c;
             line-height: 1.6;
+            overflow-x: hidden;
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            padding: 1.5rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .logo-section {
@@ -68,12 +75,33 @@
         }
 
         .intro-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
             padding: 3rem;
             margin-bottom: 2rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .intro-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #667eea);
+            background-size: 200% 100%;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 200% 0; }
+            50% { background-position: -200% 0; }
         }
 
         .intro-card h2 {
@@ -398,6 +426,113 @@
             display: none;
         }
 
+        /* Connection Form Styles */
+        .connection-form {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group small {
+            color: #6b7280;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .connection-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .test-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .test-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .connection-status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .connection-status.success {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .connection-status.error {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        .connection-status.testing {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 1rem;
@@ -486,12 +621,57 @@
                 </div>
             </div>
             
-            <form id="sourceForm" onsubmit="handleSubmit(event)">
-                <button id="runWorkflowButton" type="submit" class="extract-button">
-                    <span class="button-icon">🔍</span>
-                    <span class="button-text">Extract Comprehensive Metadata</span>
-                </button>
-            </form>
+            <!-- Neo4j Connection Form -->
+            <div class="connection-form">
+                <h3 style="margin-bottom: 1rem; color: #1a202c;">🔗 Neo4j Database Connection</h3>
+                <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <p style="margin: 0; color: #0c4a6e; font-size: 0.9rem;">
+                        <strong>💡 Demo Ready:</strong> Default values are set for local Neo4j. 
+                        Update the password and click "Test Connection" to verify your setup.
+                    </p>
+                </div>
+                <form id="sourceForm" onsubmit="handleSubmit(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="neo4j_uri">Database URI</label>
+                            <input type="text" id="neo4j_uri" name="neo4j_uri" 
+                                   placeholder="bolt://localhost:7687 or bolt+s://your-instance.databases.neo4j.io"
+                                   value="bolt://localhost:7687"
+                                   required>
+                            <small>Use bolt:// for local or bolt+s:// for Neo4j Aura</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="neo4j_username">Username</label>
+                            <input type="text" id="neo4j_username" name="neo4j_username" 
+                                   placeholder="neo4j" value="neo4j" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="neo4j_password">Password</label>
+                            <input type="password" id="neo4j_password" name="neo4j_password" 
+                                   placeholder="Enter your Neo4j password" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="neo4j_database">Database Name (Optional)</label>
+                            <input type="text" id="neo4j_database" name="neo4j_database" 
+                                   placeholder="neo4j" value="neo4j">
+                            <small>Leave as 'neo4j' for default database</small>
+                        </div>
+                    </div>
+                    
+                    <div class="connection-actions">
+                        <button type="button" id="testConnectionButton" class="test-button">
+                            <span class="button-icon">🔌</span>
+                            <span class="button-text">Test Connection</span>
+                        </button>
+                        <button id="runWorkflowButton" type="submit" class="extract-button" disabled>
+                            <span class="button-icon">🔍</span>
+                            <span class="button-text">Extract Comprehensive Metadata</span>
+                        </button>
+                    </div>
+                    
+                    <div id="connection-status" class="connection-status hidden"></div>
+                </form>
+            </div>
         </div>
 
         <div id="results-container" class="results-container hidden">

@@ -18,17 +18,25 @@ class Neo4jActivities(ActivitiesInterface):
     async def _setup_state_if_needed(self, workflow_args: dict) -> None:
         if self.handler is None:
             try:
-                logger.info("Setting up Neo4j handler")
-                uri = os.environ.get("NEO4J_URI")
-                username = os.environ.get("NEO4J_USERNAME") 
-                password = os.environ.get("NEO4J_PASSWORD")
+                logger.info("Setting up Neo4j handler with dynamic credentials")
+                
+                # Get credentials from workflow args or fall back to environment variables
+                credentials = workflow_args.get("neo4j_credentials", {})
+                
+                uri = credentials.get("neo4j_uri") or os.environ.get("NEO4J_URI")
+                username = credentials.get("neo4j_username") or os.environ.get("NEO4J_USERNAME")
+                password = credentials.get("neo4j_password") or os.environ.get("NEO4J_PASSWORD")
                 
                 if not all([uri, username, password]):
-                    raise ValueError("Missing required Neo4j environment variables")
+                    raise ValueError("Missing required Neo4j credentials. Please provide them via the frontend form or environment variables.")
+                
+                logger.info(f"Connecting to Neo4j at {uri} with username {username}")
                 
                 client = Neo4jClient(uri=uri, username=username, password=password)
                 self.handler = Neo4jHandler(client=client)
                 await self.handler.load()
+                
+                logger.info("Neo4j handler setup completed successfully")
             except Exception as e:
                 logger.error(f"Failed to setup Neo4j handler: {str(e)}")
                 self.handler = None
@@ -37,10 +45,15 @@ class Neo4jActivities(ActivitiesInterface):
     @activity.defn
     async def get_workflow_args(self, workflow_config: Dict[str, Any]) -> Dict[str, Any]:
         """Extract and prepare workflow arguments from config."""
-        logger.info("Preparing workflow arguments")
+        logger.info("Preparing workflow arguments with credentials")
+        
+        # Extract Neo4j credentials from config
+        neo4j_credentials = workflow_config.get("neo4j_credentials", {})
+        
         return {
             "workflow_id": workflow_config.get("workflow_id", "unknown"),
-            "config": workflow_config
+            "config": workflow_config,
+            "neo4j_credentials": neo4j_credentials
         }
 
     @activity.defn

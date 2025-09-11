@@ -1,12 +1,87 @@
 /**
+ * Test Neo4j connection with provided credentials
+ */
+async function testConnection() {
+    const testButton = document.getElementById("testConnectionButton");
+    const runButton = document.getElementById("runWorkflowButton");
+    const statusDiv = document.getElementById("connection-status");
+    
+    // Get form data
+    const credentials = getCredentialsFromForm();
+    if (!credentials) return;
+    
+    // Update UI to testing state
+    testButton.disabled = true;
+    testButton.innerHTML = '<span class="loading-spinner"></span>Testing Connection...';
+    statusDiv.className = "connection-status testing";
+    statusDiv.classList.remove("hidden");
+    statusDiv.innerHTML = "🔌 Testing connection to Neo4j database...";
+    
+    try {
+        const response = await fetch("/api/test-connection", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(credentials)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            statusDiv.className = "connection-status success";
+            statusDiv.innerHTML = `✅ Connection successful! Connected to ${credentials.neo4j_uri}`;
+            runButton.disabled = false;
+        } else {
+            statusDiv.className = "connection-status error";
+            statusDiv.innerHTML = `❌ Connection failed: ${result.error || 'Unknown error'}`;
+            runButton.disabled = true;
+        }
+    } catch (error) {
+        statusDiv.className = "connection-status error";
+        statusDiv.innerHTML = `❌ Connection test failed: ${error.message}`;
+        runButton.disabled = true;
+    } finally {
+        testButton.disabled = false;
+        testButton.innerHTML = '<span class="button-icon">🔌</span><span class="button-text">Test Connection</span>';
+    }
+}
+
+/**
+ * Get credentials from form
+ */
+function getCredentialsFromForm() {
+    const uri = document.getElementById("neo4j_uri").value.trim();
+    const username = document.getElementById("neo4j_username").value.trim();
+    const password = document.getElementById("neo4j_password").value.trim();
+    const database = document.getElementById("neo4j_database").value.trim() || "neo4j";
+    
+    if (!uri || !username || !password) {
+        alert("Please fill in all required fields (URI, Username, Password)");
+        return null;
+    }
+    
+    return {
+        neo4j_uri: uri,
+        neo4j_username: username,
+        neo4j_password: password,
+        neo4j_database: database
+    };
+}
+
+/**
  * Main function to handle the form submission.
- * It starts the workflow and polls for the result.
+ * It starts the workflow with dynamic credentials and polls for the result.
  */
 async function handleSubmit(event) {
     event.preventDefault();
 
     const runButton = document.getElementById("runWorkflowButton");
     const resultsContainer = document.getElementById("results-container");
+    
+    // Get credentials from form
+    const credentials = getCredentialsFromForm();
+    if (!credentials) return;
 
     // Reset the UI to a loading state
     runButton.disabled = true;
@@ -14,13 +89,15 @@ async function handleSubmit(event) {
     resultsContainer.classList.add("hidden");
 
     try {
-        // Use the Atlan SDK's built-in workflow endpoint
+        // Use the Atlan SDK's built-in workflow endpoint with credentials
         const startResponse = await fetch("/workflows/v1/start", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({}),
+            body: JSON.stringify({
+                neo4j_credentials: credentials
+            }),
         });
 
         if (!startResponse.ok) {
@@ -35,7 +112,7 @@ async function handleSubmit(event) {
             throw new Error("Could not find data.workflow_id in the server response.");
         }
 
-        console.log(`Workflow started with ID: ${workflowId}`);
+        console.log(`Workflow started with ID: ${workflowId} using credentials for ${credentials.neo4j_uri}`);
         // Wait for workflow to complete, then show success
         await waitForWorkflowCompletion(workflowId);
         displaySuccessMessage(workflowId);
@@ -45,9 +122,17 @@ async function handleSubmit(event) {
         alert("Failed to extract metadata. Check the browser console and Docker logs for details.");
     } finally {
         runButton.disabled = false;
-        runButton.textContent = "Extract Metadata";
+        runButton.innerHTML = '<span class="button-icon">🔍</span><span class="button-text">Extract Comprehensive Metadata</span>';
     }
 }
+
+// Add event listener for test connection button
+document.addEventListener('DOMContentLoaded', function() {
+    const testButton = document.getElementById("testConnectionButton");
+    if (testButton) {
+        testButton.addEventListener('click', testConnection);
+    }
+});
 
 /**
  * Wait a bit for the workflow to complete, then show success
