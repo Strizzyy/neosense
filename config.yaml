@@ -1,0 +1,17 @@
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: appconfig
+spec:
+  httpPipeline:
+    handlers:
+      - name: cors
+        type: middleware.http.cors
+  middleware:
+    http:
+      cors:
+        allowedOrigins: "http://localhost:8000,http://127.0.0.1:8000"
+        allowedMethods: "GET,POST,PUT,DELETE,OPTIONS"
+        allowedHeaders: "*"
+        allowCredentials: true
+        maxAge: "300"

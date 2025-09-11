@@ -51,7 +51,7 @@ COPY --chown=appuser:appuser . .
 
 # Set environment variables, including adding the venv to the PATH.
 # This is done before installing supervisor so the 'pip' command is found.
-ENV ATLAN_DAPR_APP_PORT=3000 \
+ENV ATLAN_DAPR_APP_PORT=8000 \
     ATLAN_DAPR_HTTP_PORT=3500 \
     ATLAN_DAPR_GRPC_PORT=50001 \
     ATLAN_DAPR_METRICS_PORT=3100 \

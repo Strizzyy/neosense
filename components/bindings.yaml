@@ -1,0 +1,7 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: bindings
+spec:
+  type: bindings.http
+  version: v1
