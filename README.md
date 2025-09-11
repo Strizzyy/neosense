@@ -26,7 +26,7 @@ neosense/
 ├── frontend/                    # Web interface
 │   ├── static/script.js        # Frontend JavaScript
 │   └── templates/index.html    # Main UI template
-├── components/                  # Dapr configuration
+├── deploy/                      # Deployment configuration
 ├── main.py                     # Application entry point
 ├── config.yaml                 # Dapr configuration
 ├── pyproject.toml             # Python dependencies
@@ -238,7 +238,7 @@ temporal server start-dev --db-filename ./temporal.db
 #### 2. **Launch NeoSense Application**
 ```bash
 # Terminal 2: Start NeoSense with Dapr sidecar
-dapr run --app-id neosense --app-port 8000 --dapr-http-port 3555 --resources-path ./components --config config.yaml -- uv run python main.py
+dapr run --app-id neosense --app-port 8000 --dapr-http-port 3555 -- uv run python main.py
 ```
 
 #### 3. **Access Web Interface**
