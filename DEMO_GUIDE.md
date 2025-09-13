@@ -101,7 +101,7 @@ This command will:
 
 Access your Neo4j Aura database console and run the following script to create the test dataset:
 
-![Neo4j Database Overview]
+
 ![alt text](image.png)
 
 The above image shows the Neo4j Aura interface with the sample data loaded, displaying 18 nodes across 5 different labels (Category, Customer, Order, Product, Supplier) and their relationships.
