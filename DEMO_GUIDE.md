@@ -102,7 +102,7 @@ This command will:
 Access your Neo4j Aura database console and run the following script to create the test dataset:
 
 
-![alt text](image.png)
+![alt text](images\image.png)
 
 The above image shows the Neo4j Aura interface with the sample data loaded, displaying 18 nodes across 5 different labels (Category, Customer, Order, Product, Supplier) and their relationships.
 
@@ -318,7 +318,7 @@ CREATE (s2)-[:SUPPLIES]->(p3);
 2. Open your browser and navigate to `http://localhost:8000`
 3. You'll see the NeoSense interface with the main dashboard
 
-[NeoSense Application Interface]![alt text](image-1.png)
+![alt text](images/image-1.png)
 
 **What you'll see:**
 - Clean, professional interface titled "NeoSense - Intelligent Neo4j Metadata Extraction"
@@ -365,8 +365,8 @@ CREATE (s2)-[:SUPPLIES]->(p3);
 4. Monitor the parallel execution pattern in the Event History
 
 
-![alt text](image-2.png)
-![alt text](image-3.png)
+![alt text](images/image-2.png)
+![alt text](images/image-3.png)
 
 **Temporal Dashboard shows:**
 - Workflow execution timeline with all activities
@@ -380,7 +380,7 @@ The Event History view displays the detailed execution flow showing all five act
 
 The application will display comprehensive metadata across four categories:
 
-[Metadata Extraction Results Overview]![alt text](image-5.png)
+![alt text](images/image-5.png)
 
 **📊 Schema Information:**
 - **Node Types:** 5 types (Category, Customer, Order, Product, Supplier)
@@ -413,7 +413,7 @@ The application will display comprehensive metadata across four categories:
   - Order.status: 100.00% unique across records
   - Product.category: 60.00% uniqueness (multiple products share categories)
 
-![alt text](image-8.png)
+![alt text](images/image-8.png)
 
 
 **📊 Graph Statistics:**
@@ -446,7 +446,7 @@ The complete extracted metadata is also available in structured **JSON format** 
 
 This JSON output can be seamlessly ingested by metadata management platforms such as **Apache Atlas, DataHub, or Collibra**, enabling **automated metadata ingestion, lineage tracking, and governance workflows**.
 
-![alt text](image-10.png)
+![alt text](images/image-10.png)
 
 ### Expected Workflow Performance
 - **Total Execution Time:** ~30-60 seconds

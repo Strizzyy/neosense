@@ -16,28 +16,53 @@ NeoSense is an intelligent metadata extraction application built on Atlan's Apps
 | [Demo Instructions](#demo-instructions) | Testing with sample data |
 | [Troubleshooting](#troubleshooting) | Common issues and solutions |
 
-## Project Structure
+# 📂 Neosense Project Structure  
+
+This document provides an overview of the directory structure and purpose of each component in the **Neosense** project.  
 
 ```
 neosense/
-├── app/                          # Core application logic
-│   ├── activities.py            # Temporal activities (fault-tolerant tasks)
-│   ├── client.py               # Neo4j database client
-│   ├── handler.py              # Business logic and metadata extraction
-│   ├── workflow.py             # Workflow orchestration
-│   └── queries/                # Cypher query files
-├── frontend/                    # Web interface
-│   ├── static/
-│   │   ├── script.js           # Frontend JavaScript
-│   │   └── styles.css          # UI styling
+├── app/                      # Core application logic
+│   ├── queries/              # Cypher queries for Neo4j
+│   │   └── __init__.py
+│   │
+│   ├── activities.py         # Temporal activities (fault-tolerant tasks)
+│   ├── client.py             # Neo4j database client
+│   ├── handler.py            # Business logic & metadata extraction
+│   └── workflow.py           # Workflow orchestration
+│   │
+│   ├── frontend/             # Web interface
+│   ├── static/               # Frontend assets
+│   │   ├── script.js         # Frontend JavaScript
+│   │   └── styles.css        # UI styling
+│   │
 │   └── templates/
-│       └── index.html          # Main UI template
-├── components/                  # Dapr components
-├── deploy/                      # Deployment configuration
-├── main.py                     # Application entry point
-├── config.yaml                 # Dapr configuration
-├── pyproject.toml             # Python dependencies
-└── README.md                  # This file
+│       └── index.html        # Main UI template
+│
+├── components/               # Dapr components
+│   ├── objectstore.yaml      # Object store configuration
+│   └── statestore.yaml       # State store configuration
+│
+├── deploy/                   # Deployment configurations
+│   ├── Dockerfile            # Container definition
+│   ├── entrypoint.sh         # Startup script
+│   ├── supervisord.conf      # Process manager configuration
+│   └── README.md             # Deployment guide
+│
+├── images/                   # Project-related images
+│
+├── local/                    # Local environment resources
+│   └── .gitattributes        # Git attributes configuration
+│
+├── .gitignore                # Ignored files for Git
+├── ARCHITECTURE_NOTES.md     # Notes on system architecture
+├── DEMO_GUIDE.md             # Guide for running project demo
+├── FRAMEWORK_NOTES.md        # Framework-specific notes
+├── README.md                 # Project documentation
+│
+├── config.yaml               # Dapr configuration
+├── main.py                   # Application entry point
+└── pyproject.toml            # Python dependencies & project config
 ```
 
 ## Key Features
