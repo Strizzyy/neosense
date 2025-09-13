@@ -35,7 +35,7 @@
 
 NeoSense is an intelligent Neo4j metadata extraction system that provides comprehensive graph database analysis and metadata discovery. This document outlines the high-level system architecture, key design decisions, and component interactions that make NeoSense a robust, scalable solution for graph database metadata management.
 
-## 🏗️ System Architecture Overview
+## System Architecture Overview
 
 ### High-Level System Architecture
 
@@ -131,7 +131,7 @@ sequenceDiagram
     Frontend-->>User: Show metadata
 ```
 
-## 🎯 Core Architectural Decisions
+##  Core Architectural Decisions
 
 ### 1. **Layered Architecture with Clear Separation of Concerns**
 
@@ -263,7 +263,7 @@ async def run_query(self, query: str, params: Optional[Dict] = None):
     return results
 ```
 
-## 🧩 Component Architecture
+##  Component Architecture
 
 ### Data Flow Architecture
 
@@ -368,7 +368,7 @@ graph TD
     style A5 fill:#f3e5f5
 ```
 
-## 🎯 Business Logic Architecture
+## Business Logic Architecture
 
 ### 7. **Intelligent Metadata Categorization**
 
@@ -431,7 +431,7 @@ def _calculate_completeness_summary(self, quality_metrics: Dict[str, Any]) -> Di
     }
 ```
 
-## 🔧 Technical Implementation Decisions
+##  Technical Implementation Decisions
 
 ### 9. **Modular Component Design**
 
@@ -470,7 +470,7 @@ async def run(self, workflow_config: Dict[str, Any]) -> dict:
     logger.info(f"   ✅ Data Quality Score: {quality_score:.2f}%")
 ```
 
-## 🚀 Performance and Scalability Decisions
+## Performance and Scalability Decisions
 
 ### 11. **Connection Management Strategy**
 
@@ -491,7 +491,7 @@ async def run(self, workflow_config: Dict[str, Any]) -> dict:
 - **Performance**: Efficient processing of query results
 - **Reliability**: Prevents out-of-memory errors in production
 
-## 🎯 Design Principles Applied
+##  Design Principles Applied
 
 ### **1. Separation of Concerns**
 Each component has a single, well-defined responsibility aligned with Atlan SDK interfaces.
@@ -508,7 +508,7 @@ Security, observability, error handling, and scalability considered throughout t
 ### **5. Framework-Native Patterns**
 Full compliance with Atlan SDK interfaces and recommended practices.
 
-## 🌟 Potential Improvements and Future Scope
+##  Potential Improvements and Future Scope
 
 ### Potential Improvements
 

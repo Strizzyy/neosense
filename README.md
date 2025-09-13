@@ -16,7 +16,7 @@ NeoSense is an intelligent metadata extraction application built on Atlan's Apps
 | [Demo Instructions](#demo-instructions) | Testing with sample data |
 | [Troubleshooting](#troubleshooting) | Common issues and solutions |
 
-# 📂 Neosense Project Structure  
+#  Neosense Project Structure  
 
 This document provides an overview of the directory structure and purpose of each component in the **Neosense** project.  
 

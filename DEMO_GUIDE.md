@@ -382,13 +382,13 @@ The application will display comprehensive metadata across four categories:
 
 ![alt text](images/image-5.png)
 
-**📊 Schema Information:**
+**Schema Information:**
 - **Node Types:** 5 types (Category, Customer, Order, Product, Supplier)
 - **Relationship Types:** 4 types (BELONGS_TO, CONTAINS, PLACED_ORDER, SUPPLIES)
 - **Total Nodes:** 18 nodes across the graph
 - **Data Quality Score:** 92.3%
 
-**🏢 Business Context:**
+**Business Context:**
 - **Customer Segments:** 
   - 2 premium customers (50%)
   - 2 regular customers (50%)
@@ -396,13 +396,13 @@ The application will display comprehensive metadata across four categories:
 - **Product Catalog:** 5 products across multiple categories
 
 
-**🔗 Lineage Information:**
+**Lineage Information:**
 - **Data Flow Entities:** Category, Customer, Order, Product, Supplier
 - **Connections:** BELONGS_TO, CONTAINS, PLACED_ORDER, SUPPLIES
 - **Potential Flows:** Complete relationship mapping showing data dependencies
 - **Graph Dependencies:** Customer→Order→Product flow patterns
 
-**📈 Quality Metrics:**
+** Quality Metrics:**
 - **Overall Completeness:** 92.31%
 - **Field-Level Analysis:**
   - Customer.email: 75.00% complete (1 null out of 4 records)
@@ -416,7 +416,8 @@ The application will display comprehensive metadata across four categories:
 ![alt text](images/image-8.png)
 
 
-**📊 Graph Statistics:**
+**Graph Staistics:**
+
 - **Node Counts by Label:**
   - Product: 5 nodes
   - Customer: 4 nodes
@@ -435,7 +436,7 @@ The application will display comprehensive metadata across four categories:
   - Total Relationships: 17
 
 
-**🧾Raw JSON Output:**
+**Raw JSON Output:**
 The complete extracted metadata is also available in structured **JSON format** for data catalog integration.
 
 - **business_context:** Customer segments, order statistics, and business metrics

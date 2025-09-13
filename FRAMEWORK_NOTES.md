@@ -23,7 +23,7 @@
 
 This document details the interesting challenges encountered while working with Atlan's Apps Framework, the solutions implemented, and the patterns discovered that could benefit other developers and potentially enhance the framework itself.
 
-## 🎯 Framework Integration Challenges
+## Framework Integration Challenges
 
 ### Challenge 1: **Async/Sync Bridge for Neo4j Driver**
 
@@ -387,7 +387,7 @@ async def run(self, workflow_config: Dict[str, Any]) -> dict:
 - Business metrics in logs
 - Production monitoring capabilities
 
-## 🚀 Framework Contribution Opportunities
+##  Framework Contribution Opportunities
 
 ### 1. **Enhanced Database Integration Support**
 
