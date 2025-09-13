@@ -8,6 +8,16 @@ from application_sdk.observability.logger_adaptor import get_logger
 from .client import Neo4jClient
 from .handler import Neo4jHandler
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    logger = get_logger(__name__)
+    logger.info("Loaded environment variables from .env file")
+except ImportError:
+    logger = get_logger(__name__)
+    logger.warning("python-dotenv not available, using system environment variables")
+
 logger = get_logger(__name__)
 
 class Neo4jActivities(ActivitiesInterface):
@@ -19,16 +29,28 @@ class Neo4jActivities(ActivitiesInterface):
         if self.handler is None:
             try:
                 logger.info("Setting up Neo4j handler with dynamic credentials")
+                logger.info(f"Workflow args received: {workflow_args}")
                 
                 # Get credentials from workflow args or fall back to environment variables
                 credentials = workflow_args.get("neo4j_credentials", {})
+                logger.info(f"Extracted credentials: {credentials}")
                 
                 uri = credentials.get("neo4j_uri") or os.environ.get("NEO4J_URI")
                 username = credentials.get("neo4j_username") or os.environ.get("NEO4J_USERNAME")
                 password = credentials.get("neo4j_password") or os.environ.get("NEO4J_PASSWORD")
                 
+                logger.info(f"Final credentials - URI: {uri}, Username: {username}, Password: {'***' if password else None}")
+                
                 if not all([uri, username, password]):
-                    raise ValueError("Missing required Neo4j credentials. Please provide them via the frontend form or environment variables.")
+                    # Try to get from environment variables directly as a last resort
+                    logger.warning("Credentials not found in workflow args, trying environment variables directly")
+                    uri = os.environ.get("NEO4J_URI")
+                    username = os.environ.get("NEO4J_USERNAME") 
+                    password = os.environ.get("NEO4J_PASSWORD")
+                    logger.info(f"Environment fallback - URI: {uri}, Username: {username}, Password: {'***' if password else None}")
+                    
+                    if not all([uri, username, password]):
+                        raise ValueError("Missing required Neo4j credentials. Please provide them via the frontend form or environment variables.")
                 
                 logger.info(f"Connecting to Neo4j at {uri} with username {username}")
                 
@@ -46,9 +68,26 @@ class Neo4jActivities(ActivitiesInterface):
     async def get_workflow_args(self, workflow_config: Dict[str, Any]) -> Dict[str, Any]:
         """Extract and prepare workflow arguments from config."""
         logger.info("Preparing workflow arguments with credentials")
+        logger.info(f"Received workflow_config: {workflow_config}")
+        logger.info(f"Workflow config keys: {list(workflow_config.keys())}")
         
-        # Extract Neo4j credentials from config
-        neo4j_credentials = workflow_config.get("neo4j_credentials", {})
+        # Extract Neo4j credentials from config - try multiple possible locations
+        neo4j_credentials = (
+            workflow_config.get("neo4j_credentials", {}) or
+            workflow_config.get("credentials", {}) or
+            workflow_config.get("config", {}).get("neo4j_credentials", {}) or
+            {}
+        )
+        logger.info(f"Extracted neo4j_credentials: {neo4j_credentials}")
+        
+        # Also check if credentials are at the top level
+        if not neo4j_credentials:
+            for key in ["neo4j_uri", "neo4j_username", "neo4j_password"]:
+                if key in workflow_config:
+                    if not neo4j_credentials:
+                        neo4j_credentials = {}
+                    neo4j_credentials[key] = workflow_config[key]
+            logger.info(f"Credentials from top level: {neo4j_credentials}")
         
         return {
             "workflow_id": workflow_config.get("workflow_id", "unknown"),

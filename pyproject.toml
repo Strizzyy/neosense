@@ -14,6 +14,7 @@ dependencies = [
     "fastapi",
     "httpx",
     "aiohttp",
+    "python-dotenv",
 ]
 
 [dependency-groups]

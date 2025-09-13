@@ -1,0 +1,14 @@
+{
+  "Business Context": {
+    "error": "Failed to extract context: Activity task failed"
+  },
+  "Lineage Information": {
+    "error": "Failed to extract lineage: Activity task failed"
+  },
+  "Quality Metrics": {
+    "error": "Failed to extract metrics: Activity task failed"
+  },
+  "Schema Information": {
+    "error": "Failed to extract schema: Activity task failed"
+  }
+}

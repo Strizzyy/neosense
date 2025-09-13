@@ -1,73 +1,7 @@
 /**
- * Test Neo4j connection with provided credentials
+ * Environment variables are used for Neo4j connection
+ * No need for credential form handling
  */
-async function testConnection() {
-    const testButton = document.getElementById("testConnectionButton");
-    const runButton = document.getElementById("runWorkflowButton");
-    const statusDiv = document.getElementById("connection-status");
-    
-    // Get form data
-    const credentials = getCredentialsFromForm();
-    if (!credentials) return;
-    
-    // Update UI to testing state
-    testButton.disabled = true;
-    testButton.innerHTML = '<span class="loading-spinner"></span>Testing Connection...';
-    statusDiv.className = "connection-status testing";
-    statusDiv.classList.remove("hidden");
-    statusDiv.innerHTML = "🔌 Testing connection to Neo4j database...";
-    
-    try {
-        const response = await fetch("/api/test-connection", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(credentials)
-        });
-        
-        const result = await response.json();
-        
-        if (response.ok && result.success) {
-            statusDiv.className = "connection-status success";
-            statusDiv.innerHTML = `✅ Connection successful! Connected to ${credentials.neo4j_uri}`;
-            runButton.disabled = false;
-        } else {
-            statusDiv.className = "connection-status error";
-            statusDiv.innerHTML = `❌ Connection failed: ${result.error || 'Unknown error'}`;
-            runButton.disabled = true;
-        }
-    } catch (error) {
-        statusDiv.className = "connection-status error";
-        statusDiv.innerHTML = `❌ Connection test failed: ${error.message}`;
-        runButton.disabled = true;
-    } finally {
-        testButton.disabled = false;
-        testButton.innerHTML = '<span class="button-icon">🔌</span><span class="button-text">Test Connection</span>';
-    }
-}
-
-/**
- * Get credentials from form
- */
-function getCredentialsFromForm() {
-    const uri = document.getElementById("neo4j_uri").value.trim();
-    const username = document.getElementById("neo4j_username").value.trim();
-    const password = document.getElementById("neo4j_password").value.trim();
-    const database = document.getElementById("neo4j_database").value.trim() || "neo4j";
-    
-    if (!uri || !username || !password) {
-        alert("Please fill in all required fields (URI, Username, Password)");
-        return null;
-    }
-    
-    return {
-        neo4j_uri: uri,
-        neo4j_username: username,
-        neo4j_password: password,
-        neo4j_database: database
-    };
-}
 
 /**
  * Main function to handle the form submission.
@@ -78,10 +12,6 @@ async function handleSubmit(event) {
 
     const runButton = document.getElementById("runWorkflowButton");
     const resultsContainer = document.getElementById("results-container");
-    
-    // Get credentials from form
-    const credentials = getCredentialsFromForm();
-    if (!credentials) return;
 
     // Reset the UI to a loading state
     runButton.disabled = true;
@@ -89,15 +19,17 @@ async function handleSubmit(event) {
     resultsContainer.classList.add("hidden");
 
     try {
-        // Use the Atlan SDK's built-in workflow endpoint with credentials
+        // Use the Atlan SDK's built-in workflow endpoint
+        // Credentials are loaded from environment variables (.env file)
+        console.log("Starting workflow with environment credentials");
+        const requestBody = {};
+        
         const startResponse = await fetch("/workflows/v1/start", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({
-                neo4j_credentials: credentials
-            }),
+            body: JSON.stringify(requestBody),
         });
 
         if (!startResponse.ok) {
@@ -109,13 +41,22 @@ async function handleSubmit(event) {
         const responseData = await startResponse.json();
         console.log("Full workflow response:", responseData);
         
-        // Generate a unique workflow ID for tracking purposes
-        const workflowId = `workflow_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // Check if the workflow actually started successfully
+        if (!responseData.success && responseData.success !== undefined) {
+            throw new Error(`Workflow failed to start: ${responseData.message || 'Unknown error'}`);
+        }
         
-        console.log(`Workflow started with ID: ${workflowId} using credentials for ${credentials.neo4j_uri}`);
-        console.log("Response received successfully - proceeding with metadata extraction");
+        // Extract the actual workflow ID from the response
+        const workflowId = responseData.workflow_id || responseData.workflowId || responseData.id || responseData.data?.workflow_id || responseData.data?.workflowId;
         
-        // Always proceed with success display since the workflow was started successfully
+        if (!workflowId) {
+            throw new Error("No workflow ID returned from server");
+        }
+        
+        console.log(`Workflow started successfully with ID: ${workflowId} using environment credentials`);
+        console.log("Proceeding with metadata extraction");
+        
+        // Wait for workflow completion and display results
         await waitForWorkflowCompletion(workflowId);
         displaySuccessMessage(workflowId);
 
@@ -128,13 +69,7 @@ async function handleSubmit(event) {
     }
 }
 
-// Add event listener for test connection button
-document.addEventListener('DOMContentLoaded', function() {
-    const testButton = document.getElementById("testConnectionButton");
-    if (testButton) {
-        testButton.addEventListener('click', testConnection);
-    }
-});
+// Environment credentials are used - no need for connection testing
 
 /**
  * Wait a bit for the workflow to complete, then show success
@@ -169,7 +104,7 @@ function displaySuccessMessage(workflowId) {
             <div style="margin: 2rem 0;">
                 <h3 style="color: #1f2937; margin-bottom: 1rem; font-size: 1.5rem;">Live metadata extraction from your Neo4j database is complete!</h3>
                 <p style="color: #6b7280; font-size: 1.1rem; line-height: 1.6;">
-                    The system has analyzed your e-commerce graph data including customers, orders, and products.
+                    The system has analyzed your Neo4j Aura database using environment credentials and extracted comprehensive metadata including customers, orders, and products.
                 </p>
             </div>
             
@@ -516,22 +451,40 @@ async function showLiveResults(workflowId) {
         document.getElementById("stats-content").innerHTML = loadingHtml;
         document.getElementById("raw-json-output").textContent = "Loading complete JSON output...";
 
-        // Try multiple times to get the results as they might take a moment to be stored
-        let attempts = 0;
-        const maxAttempts = 5;
+        // Try to get the latest workflow result first (most reliable)
         let actualData = null;
-
-        while (attempts < maxAttempts && !actualData) {
-            const response = await fetch(`/api/workflow-result/${workflowId}`);
-
-            if (response.ok) {
-                actualData = await response.json();
-                break;
-            } else if (attempts < maxAttempts - 1) {
-                // Wait 2 seconds before trying again
-                await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        try {
+            const latestResponse = await fetch('/api/workflow-result/latest');
+            if (latestResponse.ok) {
+                actualData = await latestResponse.json();
+                console.log("Successfully loaded latest workflow result");
             }
-            attempts++;
+        } catch (e) {
+            console.log("Latest result endpoint not available, trying specific workflow ID");
+        }
+
+        // If latest didn't work, try the specific workflow ID
+        if (!actualData) {
+            let attempts = 0;
+            const maxAttempts = 5;
+
+            while (attempts < maxAttempts && !actualData) {
+                try {
+                    const response = await fetch(`/api/workflow-result/${workflowId}`);
+                    if (response.ok) {
+                        actualData = await response.json();
+                        break;
+                    }
+                } catch (e) {
+                    console.log(`Attempt ${attempts + 1} failed:`, e.message);
+                }
+                
+                if (attempts < maxAttempts - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+                attempts++;
+            }
         }
 
         if (actualData) {

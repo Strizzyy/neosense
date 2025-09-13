@@ -185,6 +185,26 @@ def setup_frontend_routes(fastapi_app):
         logger.info("Workflow result not ready yet")
         raise HTTPException(status_code=404, detail="Workflow not ready")
     
+    async def get_latest_workflow_result_handler():
+        """Get the latest workflow result"""
+        logger.info("Fetching latest workflow result")
+        
+        # Check for latest result file
+        results_dir = "workflow_results"
+        latest_file = os.path.join(results_dir, "latest.json")
+        
+        if os.path.exists(latest_file):
+            try:
+                with open(latest_file, 'r') as f:
+                    result = json.load(f)
+                logger.info("Found latest workflow result!")
+                return result
+            except Exception as e:
+                logger.error(f"Error reading latest result file: {e}")
+        
+        logger.info("No latest workflow result available")
+        raise HTTPException(status_code=404, detail="No workflow results available")
+    
     async def store_workflow_result_handler(workflow_id: str, request: Request):
         """Store workflow result (this will be called by our workflow)"""
         logger.info(f"Storing result for workflow: {workflow_id}")
@@ -203,6 +223,11 @@ def setup_frontend_routes(fastapi_app):
             "/api/store-result/{workflow_id}",
             store_workflow_result_handler,
             methods=["POST"]
+        )
+        fastapi_app.add_api_route(
+            "/api/workflow-result/latest",
+            get_latest_workflow_result_handler,
+            methods=["GET"]
         )
         logger.info("Successfully registered workflow result endpoints")
     except Exception as e:

@@ -621,49 +621,30 @@
                 </div>
             </div>
             
-            <!-- Neo4j Connection Form -->
+            <!-- Neo4j Connection Status -->
             <div class="connection-form">
                 <h3 style="margin-bottom: 1rem; color: #1a202c;">🔗 Neo4j Database Connection</h3>
-                <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
-                    <p style="margin: 0; color: #0c4a6e; font-size: 0.9rem;">
-                        <strong>💡 Demo Ready:</strong> Default values are set for local Neo4j. 
-                        Update the password and click "Test Connection" to verify your setup.
-                    </p>
-                </div>
-                <form id="sourceForm" onsubmit="handleSubmit(event)">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="neo4j_uri">Database URI</label>
-                            <input type="text" id="neo4j_uri" name="neo4j_uri" 
-                                   placeholder="bolt://localhost:7687 or bolt+s://your-instance.databases.neo4j.io"
-                                   value="bolt://localhost:7687"
-                                   required>
-                            <small>Use bolt:// for local or bolt+s:// for Neo4j Aura</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="neo4j_username">Username</label>
-                            <input type="text" id="neo4j_username" name="neo4j_username" 
-                                   placeholder="neo4j" value="neo4j" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="neo4j_password">Password</label>
-                            <input type="password" id="neo4j_password" name="neo4j_password" 
-                                   placeholder="Enter your Neo4j password" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="neo4j_database">Database Name (Optional)</label>
-                            <input type="text" id="neo4j_database" name="neo4j_database" 
-                                   placeholder="neo4j" value="neo4j">
-                            <small>Leave as 'neo4j' for default database</small>
+                <div style="background: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="font-size: 2rem;">✅</div>
+                        <div>
+                            <h4 style="margin: 0; color: #065f46; font-size: 1.1rem;">Environment Configuration Active</h4>
+                            <p style="margin: 0.5rem 0 0 0; color: #047857; font-size: 0.9rem;">
+                                Neo4j credentials are loaded from environment variables (.env file)
+                            </p>
                         </div>
                     </div>
-                    
+                    <div style="background: rgba(255, 255, 255, 0.7); border-radius: 6px; padding: 1rem; font-family: monospace; font-size: 0.85rem; color: #374151;">
+                        <div><strong>NEO4J_URI:</strong> bolt+s://7b947005.databases.neo4j.io</div>
+                        <div><strong>NEO4J_USERNAME:</strong> neo4j</div>
+                        <div><strong>NEO4J_PASSWORD:</strong> ••••••••••••••••••••••••••••••••••••••••••••</div>
+                        <div><strong>NEO4J_DATABASE:</strong> neo4j</div>
+                    </div>
+                </div>
+                
+                <form id="sourceForm" onsubmit="handleSubmit(event)">
                     <div class="connection-actions">
-                        <button type="button" id="testConnectionButton" class="test-button">
-                            <span class="button-icon">🔌</span>
-                            <span class="button-text">Test Connection</span>
-                        </button>
-                        <button id="runWorkflowButton" type="submit" class="extract-button" disabled>
+                        <button id="runWorkflowButton" type="submit" class="extract-button">
                             <span class="button-icon">🔍</span>
                             <span class="button-text">Extract Comprehensive Metadata</span>
                         </button>

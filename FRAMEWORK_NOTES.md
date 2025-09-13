@@ -1,5 +1,24 @@
 # Framework Notes - Interesting Challenges and Patterns
 
+## Table of Contents
+| S.No | Contents |
+|------|----------|
+| 1. | [Overview](#overview) |
+| 2. | [Framework Integration Challenges](#framework-integration-challenges) |
+|    | • [Async/Sync Bridge for Neo4j Driver](#challenge-1-asyncsync-bridge-for-neo4j-driver) |
+|    | • [Dynamic Workflow Configuration](#challenge-2-dynamic-workflow-configuration) |
+|    | • [Custom Route Integration with BaseApplication](#challenge-3-custom-route-integration-with-baseapplication) |
+|    | • [Workflow Result Querying](#challenge-4-workflow-result-querying) |
+| 3. | [Advanced Framework Patterns Discovered](#advanced-framework-patterns-discovered) |
+|    | • [Parallel Activity Execution with Error Isolation](#pattern-1-parallel-activity-execution-with-error-isolation) |
+|    | • [State Management in Activities](#pattern-2-state-management-in-activities) |
+|    | • [Comprehensive Observability Integration](#pattern-3-comprehensive-observability-integration) |
+| 4. | [Framework Contribution Opportunities](#framework-contribution-opportunities) |
+|    | • [Enhanced Database Integration Support](#1-enhanced-database-integration-support) |
+|    | • [Built-in Workflow Result Querying](#2-built-in-workflow-result-querying) |
+|    | • [Dynamic Configuration Validation](#3-dynamic-configuration-validation) |
+|    | • [Enhanced Error Context and Recovery](#4-enhanced-error-context-and-recovery) |
+
 ## Overview
 
 This document details the interesting challenges encountered while working with Atlan's Apps Framework, the solutions implemented, and the patterns discovered that could benefit other developers and potentially enhance the framework itself.
@@ -87,18 +106,27 @@ workflow_config = {
 # Workflow receives dynamic configuration
 @workflow.run
 async def run(self, workflow_config: Dict[str, Any]) -> dict:
+    """
+    This function is the entry point for the workflow. It receives the workflow configuration,
+    extracts the Neo4j credentials, and passes them to the activities.
+    """
     # Extract dynamic credentials
     neo4j_credentials = workflow_config.get("neo4j_credentials", {})
     logger.info(f"Workflow started with credentials for: {neo4j_credentials.get('neo4j_uri')}")
     
     # Pass credentials through to activities
     workflow_args = await workflow.execute_activity_method(
-        self.activities_cls.get_workflow_args, 
+        self.activities_cls.get_workflow_args,
         {**workflow_config, "neo4j_credentials": neo4j_credentials}
     )
 
 # Activities handle both dynamic and static credentials
 async def _setup_state_if_needed(self, workflow_args: dict) -> None:
+    """
+    This function sets up the state for the activities. It first tries to get the credentials
+    from the workflow arguments. If the credentials are not found in the workflow arguments,
+    it falls back to the environment variables.
+    """
     credentials = workflow_args.get("neo4j_credentials", {})
     
     # Dynamic credentials (preferred) or environment fallback
@@ -108,9 +136,9 @@ async def _setup_state_if_needed(self, workflow_args: dict) -> None:
 ```
 
 **Key Insights**:
-- Workflow configuration can be extended beyond static environment variables
-- Credential passing requires careful handling through the entire workflow chain
-- Backward compatibility with environment variables maintains flexibility
+- The workflow configuration can be extended to accept dynamic credentials from the frontend.
+- The get_workflow_args activity is used to extract the credentials from the workflow configuration and pass them to the other activities.
+- The activities first try to get the credentials from the workflow arguments. If the credentials are not found in the workflow arguments, they fall back to the environment variables.
 
 **Framework Enhancement Opportunity**:
 ```python
@@ -207,7 +235,10 @@ workflow_result = await workflow.run(config)
 # Custom result storage and retrieval
 @activity.defn
 async def store_metadata_result(self, data: Dict[str, Any]) -> bool:
-    """Store the metadata result for frontend access."""
+    """
+    This activity stores the metadata result for frontend access. It receives the workflow ID and the result,
+    and stores the result in a JSON file. It also stores the latest result as "latest.json" for easy access.
+    """
     try:
         workflow_id = data.get("workflow_id")
         result = data.get("result")
@@ -233,7 +264,10 @@ async def store_metadata_result(self, data: Dict[str, Any]) -> bool:
 # Custom API endpoint for result retrieval
 @fastapi_app.get("/api/workflow-result/{workflow_id}")
 async def get_workflow_result(workflow_id: str):
-    """Get workflow result from file storage"""
+    """
+    This API endpoint retrieves the workflow result from file storage. It receives the workflow ID,
+    and returns the result in JSON format.
+    """
     results_dir = "workflow_results"
     result_file = os.path.join(results_dir, f"{workflow_id}.json")
     
@@ -245,9 +279,9 @@ async def get_workflow_result(workflow_id: str):
 ```
 
 **Key Insights**:
-- Workflow results need custom storage and retrieval mechanisms
-- File-based storage provides persistence across application restarts
-- Custom API endpoints bridge workflow results to frontend
+- The workflow results are stored in a file-based storage for persistence across application restarts.
+- A custom API endpoint is provided to bridge the workflow results to the frontend.
+- The store_metadata_result activity is used to store the workflow results in a JSON file.
 
 **Framework Enhancement Opportunity**:
 ```python
@@ -296,7 +330,7 @@ if failed_activities:
 ```
 
 **Benefits**:
-- 75% performance improvement over sequential execution
+- Performance improvement over sequential execution
 - Graceful degradation when some activities fail
 - Detailed error reporting for debugging
 
@@ -482,44 +516,3 @@ async def fetch_metadata(self, args: dict) -> dict:
                 "Increase connection timeout if network is slow"
             ]
         )
-```
-
-## 🎯 Lessons Learned
-
-### **1. Framework Flexibility**
-Atlan's Apps Framework is more flexible than initially apparent. With creative approaches, it can support advanced patterns like dynamic configuration and custom route integration.
-
-### **2. Async/Sync Integration**
-Thread pool execution is an effective pattern for integrating synchronous database drivers with async frameworks, maintaining performance while ensuring compatibility.
-
-### **3. Error Handling Strategy**
-Multi-level error handling with partial failure recovery provides much better user experience than all-or-nothing approaches.
-
-### **4. Observability Importance**
-Rich logging and observability integration are crucial for debugging complex workflow issues and understanding system behavior.
-
-### **5. Documentation Gaps**
-Some advanced integration patterns require exploration and experimentation due to limited documentation of internal framework APIs.
-
-## 🔮 Future Framework Enhancements
-
-Based on this implementation experience, the following enhancements would significantly improve the developer experience:
-
-1. **Standardized Database Integration Patterns**
-2. **Built-in Workflow Result Querying APIs**
-3. **Enhanced Error Context and Recovery Mechanisms**
-4. **Dynamic Configuration Validation Support**
-5. **Better Documentation of Advanced Integration Patterns**
-
-These enhancements would make the framework even more powerful for building production-ready metadata extraction and data integration applications.
-
-## 🎉 Framework Integration Success
-
-Despite the challenges encountered, Atlan's Apps Framework provided an excellent foundation for building NeoSense:
-
-- ✅ **Robust Workflow Orchestration**: Temporal integration handled complex parallel processing reliably
-- ✅ **Comprehensive Observability**: Built-in logging, metrics, and tracing simplified monitoring
-- ✅ **Production Patterns**: Framework patterns ensured enterprise-grade reliability and scalability
-- ✅ **Extensibility**: Framework flexibility allowed for innovative features like dynamic credentials
-
-The challenges encountered and solutions implemented demonstrate both framework mastery and contribute valuable insights for future framework development.
